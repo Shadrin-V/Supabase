@@ -6,38 +6,38 @@ function normalizePhone(p?: string | null) {
   const d = p.replace(/[^\d+]/g, "");
   return d.startsWith("+") ? d : `+${d}`;
 }
-function pick(v: any) { return v === "" || v === null ? undefined : v; }
+function pick(v: any) { return v === "" || v === null || v === undefined ? undefined : v; }
 
 async function upsertToGHL(lead: any) {
   const locationId = Deno.env.get("GHL_LOCATION_ID");
   if (!locationId) throw new Error("Missing GHL_LOCATION_ID env");
 
-  // ⚠️ Подгони эти поля под СВОИ названия колонок в таблице `leads`
-  const firstName = pick(first_name ?? lead.firstname ?? lead.firstName);
-  const lastName  = pick(lead.last_name  ?? lead.lastname  ?? lead.lastName);
-  const name      = pick(lead.name);
-  const email     = pick(lead.email);
-  const phone     = normalizePhone(pick(contact ?? lead.phone_number));
-  const source    = pick(lead.source) ?? "Supabase";
+  // ✅ читаем поля ТОЛЬКО через lead.?.*
+  const firstName = pick(lead?.first_name ?? lead?.firstname ?? lead?.firstName);
+  const lastName  = pick(lead?.last_name  ?? lead?.lastname  ?? lead?.lastName);
+  const email     = pick(lead?.email);
+  const phone     = normalizePhone(pick(lead?.phone ?? lead?.phone_number));
+  const name      = pick(lead?.name);
+  const source    = pick(lead?.source) ?? "Supabase";
 
   if (!email && !phone) throw new Error("Validation: need at least email or phone");
 
+  // Лог ключей, чтобы видеть реальные названия колонок
+  console.log("leadKeys:", Object.keys(lead || {}));
+
   const body: any = {
     locationId,
-    firstName,
+    firstName,    // ✅ используем локальные переменные, не first_name
     lastName,
     name,
     email,
     phone,
     source,
-    // Пример: кастом-поля (если добавишь ID полей из GHL в секреты проекта):
-    // customFields: [
-    //   { id: Deno.env.get("CF_SERVICE_ID")!, value: pick(lead.service) ?? "" },
-    //   { id: Deno.env.get("CF_UTM_SOURCE_ID")!, value: pick(lead.utm_source) ?? "" },
-    // ],
+    // customFields: [{ id: Deno.env.get("CF_SERVICE_ID")!, value: pick(lead?.service) ?? "" }],
   };
 
   Object.keys(body).forEach(k => body[k] === undefined && delete body[k]);
+  console.log("ghlRequest:", JSON.stringify(body));
 
   console.log("ghlRequest:", JSON.stringify(body));
 
