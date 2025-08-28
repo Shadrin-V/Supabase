@@ -1,0 +1,41 @@
+name: Deploy Supabase Edge Function
+
+on:
+  push:
+    branches: [ "main" ]   # или твоя основная ветка
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Supabase CLI (npx)
+        run: npx supabase --version
+
+      - name: Login to Supabase
+        run: npx supabase login --token "${{ secrets.SUPABASE_ACCESS_TOKEN }}"
+
+      - name: Set function secrets in Supabase
+        run: |
+          npx supabase secrets set \
+            --project-ref "${{ secrets.SUPABASE_PROJECT_REF }}" \
+            GHL_TOKEN="${{ secrets.GHL_TOKEN }}" \
+            GHL_LOCATION_ID="${{ secrets.GHL_LOCATION_ID }}" \
+            GHL_VERSION="2021-07-28" \
+            WEBHOOK_SECRET="${{ secrets.WEBHOOK_SECRET }}"
+        # Добавишь при необходимости:
+        #   CF_SERVICE_ID="${{ secrets.CF_SERVICE_ID }}"
+        #   CF_UTM_SOURCE_ID="${{ secrets.CF_UTM_SOURCE_ID }}"
+
+      - name: Deploy Edge Function
+        run: npx supabase functions deploy lead-to-ghl --project-ref "${{ secrets.SUPABASE_PROJECT_REF }}"
