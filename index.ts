@@ -13,11 +13,11 @@ async function upsertToGHL(lead: any) {
   if (!locationId) throw new Error("Missing GHL_LOCATION_ID env");
 
   // ⚠️ Подгони эти поля под СВОИ названия колонок в таблице `leads`
-  const firstName = pick(lead.first_name ?? lead.firstname ?? lead.firstName);
+  const firstName = pick(first_name ?? lead.firstname ?? lead.firstName);
   const lastName  = pick(lead.last_name  ?? lead.lastname  ?? lead.lastName);
   const name      = pick(lead.name);
   const email     = pick(lead.email);
-  const phone     = normalizePhone(pick(lead.phone ?? lead.phone_number));
+  const phone     = normalizePhone(pick(contact ?? lead.phone_number));
   const source    = pick(lead.source) ?? "Supabase";
 
   if (!email && !phone) throw new Error("Validation: need at least email or phone");
