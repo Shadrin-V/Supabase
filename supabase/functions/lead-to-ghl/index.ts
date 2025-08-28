@@ -16,7 +16,7 @@ async function upsertToGHL(lead: any) {
   const firstName = pick(lead?.first_name ?? lead?.firstname ?? lead?.firstName);
   const lastName  = pick(lead?.last_name  ?? lead?.lastname  ?? lead?.lastName);
   const email     = pick(lead?.email);
-  const phone     = normalizePhone(pick(lead?.phone ?? lead?.phone_number));
+  const phone     = normalizePhone(pick(lead?.phone ?? lead?.phone_number ?? lead?.contact));
   const name      = pick(lead?.name);
   const source    = pick(lead?.source) ?? "Supabase";
 
